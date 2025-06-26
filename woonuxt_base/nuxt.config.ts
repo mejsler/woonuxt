@@ -70,6 +70,7 @@ export default defineNuxtConfig({
   // Multilingual support
   i18n: {
     locales: [
+      { code: 'ru_RU', file: 'ru-RU.json', name: 'Русский 🇷🇺' },
       { code: 'en_US', file: 'en-US.json', name: 'English 🇺🇸' },
       { code: 'de_DE', file: 'de-DE.json', name: 'Deutsch 🇩🇪' },
       { code: 'es_ES', file: 'es-ES.json', name: 'Español 🇪🇸' },
@@ -78,7 +79,7 @@ export default defineNuxtConfig({
       { code: 'pt_BR', file: 'pt-BR.json', name: 'Português 🇧🇷' },
     ],
     langDir: 'locales',
-    defaultLocale: 'en_US',
+    defaultLocale: 'ru_RU',
     strategy: 'no_prefix',
     restructureDir: false,
   },
