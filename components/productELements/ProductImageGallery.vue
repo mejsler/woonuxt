@@ -1,4 +1,6 @@
-<script setup lang="ts"> 
+<script setup lang="ts">
+import { onMounted, watch } from 'vue';
+
 const { FALLBACK_IMG } = useHelpers();
 
 const props = defineProps({
@@ -46,18 +48,26 @@ const thumbsSwiper = useSwiper(thumbsSwiperRef, {
   centeredSlides: true,
   centeredSlidesBounds: true,
   direction: 'vertical',
-  autoplay: { delay: 5000, disableOnInteraction: true },
-  slidesPerView: 'auto',
+  slidesPerView: 7,
   freeMode: false,
   watchOverflow: true,
   autoHeight: true,
+  watchSlidesVisibility: true,
+  watchSlidesProgress: true,
 });
 
 const mainSwiper = useSwiper(mainSwiperRef, {
+  autoplay: {
+    delay: 4000, disableOnInteraction: true, stopOnLastSlide: false,
+  },
+  loop: true,
+  watchOverflow: true,
+  watchSlidesVisibility: true,
+  watchSlidesProgress: true,
+  preventInteractionOnTransition: true,
   thumbs: { swiper: thumbsSwiper.instance.value },
   spaceBetween: 25,
-  effect: "fade",
-  fadeEffect: { crossFade: true },
+  freeMode: false,
   navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
 });
 
@@ -81,6 +91,23 @@ function onChange(swiper: any) {
 function onInit(swiper: any) {
   onChange(swiper);
 }
+
+onMounted(() => {
+  watch(
+    () => [mainSwiper.instance.value, thumbsSwiper.instance.value],
+    ([main, thumbs]) => {
+      if (main && thumbs) {
+        main.on('slideChangeTransitionStart', () => {
+          thumbs.slideTo(main.activeIndex);
+        });
+        thumbs.on('transitionStart', () => {
+          main.slideTo(thumbs.activeIndex);
+        });
+      }
+    },
+    { immediate: true }
+  );
+});
 </script>
 
 <template>
@@ -91,10 +118,11 @@ function onInit(swiper: any) {
           <swiper-slide v-for="(item, idx) in finalGallery" :key="item.databaseId || idx">
             <template v-if="item.type === 'video'">
               <img :src="item.poster" :alt="node.name + ' video'" :title="node.name + ' video'"
-                class="cursor-pointer rounded-xl" width="72" height="92" loading="lazy" />
+                class="cursor-pointer rounded-xl" width="65" loading="lazy" />
+              <span class="thumb-video-play-icon"></span>
             </template>
             <template v-else>
-              <NuxtImg class="cursor-pointer rounded-xl" :width="72" :height="92" :src="item.sourceUrl"
+              <NuxtImg class="cursor-pointer rounded-xl" :width="65" :src="item.sourceUrl"
                 :alt="item.altText || node.name" :title="item.title || node.name" placeholder
                 placeholder-class="blur-xl" loading="lazy" />
             </template>
@@ -104,7 +132,7 @@ function onInit(swiper: any) {
 
       <div class="relative rounded-xl overflow-hidden">
         <SaleBadge :node class="absolute text-base top-4 right-4 z-10" />
-        <swiper-container ref="mainSwiperRef" :thumbs="{ swiper: thumbsSwiper.instance.value }" loop
+        <swiper-container ref="mainSwiperRef" :thumbs="{ swiper: thumbsSwiper.instance.value }"
           class="main-gallery-swiper rounded-xl object-contain w-full min-w-[350px]" :style="{ width: imgWidth + 'px' }"
           @slideChange="onChange" @swiper="onInit">
           <swiper-slide v-for="(item, idx) in finalGallery" :key="item.databaseId || idx">
@@ -118,7 +146,7 @@ function onInit(swiper: any) {
             <template v-else>
               <NuxtImg class="rounded-xl object-contain w-full h-full" :width="imgWidth" :height="imgWidth"
                 :alt="item.altText || node.name" :title="item.title || node.name" :src="item.sourceUrl || FALLBACK_IMG"
-                fetchpriority="high" placeholder placeholder-class="blur-xl" />
+                fetchpriority="high" placeholder placeholder-class="blur-xl" loading="lazy" />
             </template>
           </swiper-slide>
         </swiper-container>
@@ -132,7 +160,8 @@ function onInit(swiper: any) {
   height: 100%;
 }
 
-button {
+.swiper-button-prev,
+.swiper-button-next {
   position: absolute;
   z-index: 9999;
   width: 80px;
@@ -167,13 +196,14 @@ button:hover {
 
 .gallery-images-thumbs swiper-slide {
   max-height: 92px !important;
+  transition: transform .25s linear;
 }
 
 .swiper-slide-thumb-active {
-  outline: 2px solid red;
+  transform: scale(0.91);
 }
 
-.swiper-button-prev,
+/* .swiper-button-prev,
 .swiper-button-next {
   color: #222;
   z-index: 20;
@@ -187,7 +217,7 @@ button:hover {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-}
+} */
 
 .swiper-button-prev {
   left: 10px;
@@ -195,5 +225,30 @@ button:hover {
 
 .swiper-button-next {
   right: 10px;
+}
+
+.thumb-video-play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 35px;
+  height: 35px;
+  background: rgba(255, 27, 27, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.thumb-video-play-icon::before {
+  content: '';
+  display: block;
+  margin-left: 4px;
+  border-style: solid;
+
+  border-width: 7px 0 7px 14px;
+  border-color: transparent transparent transparent white;
 }
 </style>
