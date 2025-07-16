@@ -1,0 +1,35 @@
+query getProductReviews(
+  $slug: ID!
+  $siteReviews_page: Int = 1
+  $siteReviews_perPage: Int = 10
+  $siteReviews_rating: Int = 0
+  $siteReviews_hasContent: Boolean = true
+) {
+  product(id: $slug, idType: SLUG) {
+    siteReviews(
+      page: $siteReviews_page
+      perPage: $siteReviews_perPage
+      rating: $siteReviews_rating
+      hasContent: $siteReviews_hasContent
+    ) {
+      pageInfo {
+        total
+        totalPages
+      }
+      reviews {
+        content
+        rating
+        author
+        response
+        sourceLink
+        avatar
+        contextQuestionAnswers
+        date
+        negativeNotes
+        positiveNotes
+        photoCount
+        product_id
+      }
+    }
+  }
+} 

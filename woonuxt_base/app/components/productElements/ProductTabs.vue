@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import SiteReviews from '~/woonuxt_base/app/components/shopElements/SiteReviews.vue';
+
 const { product } = defineProps({
   product: { type: Object as PropType<Product>, required: true },
 });
@@ -13,10 +15,12 @@ const show = ref(initialTab);
     <nav class="border-b flex gap-8 tabs">
       <button v-if="product.description" type="button" :class="show === 0 ? 'active' : ''" @click.prevent="show = 0">{{ $t('messages.shop.productDescription') }}</button>
       <button v-if="storeSettings.showReviews" type="button" :class="show === 1 ? 'active' : ''" @click.prevent="show = 1">{{ $t('messages.shop.reviews') }} ({{ product.reviewCount }})</button>
+      <button v-if="product.siteReviews?.reviews && product.siteReviews.reviews.length" type="button" :class="show === 2 ? 'active' : ''" @click.prevent="show = 2">Site Reviews ({{ product.siteReviews.pageInfo.total }})</button>
     </nav>
     <div class="tab-contents">
       <div v-if="show === 0 && product.description" class="font-light mt-8 prose" v-html="product.description" />
       <ProductReviews v-if="show === 1" :product="product" />
+      <SiteReviews v-if="show === 2" :product="product" />
     </div>
   </div>
 </template>

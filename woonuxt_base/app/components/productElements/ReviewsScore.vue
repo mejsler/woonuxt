@@ -1,23 +1,12 @@
 <script setup>
 const props = defineProps({
-  reviews: { type: Object, default: null },
-  productId: { type: Number, default: null },
+  averageRating: { type: Number, default: 0 },
+  ratingsBreakdown: { type: Array, default: () => [] },
+  totalReviews: { type: Number, default: 0 },
+  selectedRating: { type: Number, default: 0 },
   size: { type: Number, default: 21 },
 });
-
-const numberAndPercentageOfEachRating = computed(() => {
-  const ratings = [0, 0, 0, 0, 0];
-  props.reviews.edges.forEach((review) => {
-    ratings[review.rating - 1] += 1;
-  });
-  const total = ratings.reduce((a, b) => a + b, 0);
-  return ratings
-    .map((count, index) => {
-      const percentage = (count / total) * 100;
-      return { count, percentage, rating: index + 1 };
-    })
-    .reverse();
-});
+const emit = defineEmits(['select-rating']);
 
 const show = ref(false);
 const hovered = ref(0);
@@ -65,14 +54,20 @@ async function addComment() {
 
 <template>
   <div>
-    <h4 v-if="reviews.edges.length" class="font-semibold text-2xl text-gray-900">{{ $t('messages.shop.customerReviews') }}</h4>
+    <h4 v-if="totalReviews" class="font-semibold text-2xl text-gray-900">{{ $t('messages.shop.customerReviews') }}</h4>
     <h4 v-else class="font-semibold text-2xl text-gray-900">{{ $t('messages.shop.noReviews') }}</h4>
-    <div v-if="reviews.edges.length" class="my-2">
-      <StarRating :rating="reviews.averageRating" :hide-count="true" class="text-sm mr-2" />
-      <span class="text-sm"> {{ $t('messages.general.basedOn') }} {{ reviews.edges.length }} {{ $t('messages.shop.reviews') }}</span>
+    <div v-if="totalReviews" class="my-2">
+      <StarRating :rating="averageRating" :hide-count="true" class="text-sm mr-2" />
+      <span class="text-sm"> {{ $t('messages.general.basedOn') }} {{ totalReviews }} {{ $t('messages.shop.reviews') }}</span>
     </div>
     <div class="my-4 bars">
-      <div v-for="rating in numberAndPercentageOfEachRating" :key="rating" class="flex gap-4 items-center">
+      <div
+        v-for="rating in ratingsBreakdown"
+        :key="rating.rating"
+        class="flex gap-4 items-center cursor-pointer select-none"
+        :class="{ 'bg-primary bg-opacity-10': props.selectedRating === rating.rating }"
+        @click="emit('select-rating', props.selectedRating === rating.rating ? 0 : rating.rating)"
+      >
         <div class="flex text-sm gap-1 items-center">
           {{ rating.rating }}
           <Icon class="text-yellow-400" name="ion:star" />
@@ -81,6 +76,7 @@ async function addComment() {
           <div class="rounded-full bg-gray-200 h-2.5 w-full"></div>
           <div class="rounded-full bg-yellow-400 h-2.5 top-0 left-0 absolute" :style="{ width: rating.percentage + '%' }"></div>
         </div>
+        <span class="text-xs text-gray-500 w-8 text-right">{{ rating.count }}</span>
       </div>
     </div>
     <div class="mt-10 text-xl mb-2 text-gray-900">Share your thoughts</div>
